@@ -1,6 +1,7 @@
 export interface ColabraComment {
   id: string
-  task_id: string
+  task_id?: string
+  project_id?: string
   body_text: string
   created_at: string
   updated_at: string
@@ -22,4 +23,11 @@ export class ColabraApiError extends Error {
     super(message)
     this.name = 'ColabraApiError'
   }
+}
+
+export type ResourceType = 'task' | 'project'
+
+export interface ResourceIdInfo {
+  type: ResourceType
+  id: string
 } 

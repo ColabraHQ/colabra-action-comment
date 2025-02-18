@@ -38,12 +38,12 @@ describe('Colabra Comment Action', () => {
     mockHttpClient = new HttpClient() as jest.Mocked<HttpClient>
   })
 
-  it('shall post a comment successfully when given valid inputs', async () => {
+  it('shall post a comment on a task successfully', async () => {
     // Arrange
     const inputs = {
       'api_key': 'test-api-key',
       'workspace_slug': 'test-workspace',
-      'resource_id': 'EXP-10',
+      'resource_id': 'TSK-123',
       'body_text': 'Test comment'
     }
 
@@ -54,7 +54,7 @@ describe('Colabra Comment Action', () => {
       },
       result: {
         id: 'comment-123',
-        task_id: 'EXP-10',
+        task_id: 'TSK-123',
         body_text: 'Test comment',
         created_at: '2024-02-20T12:00:00Z',
         updated_at: '2024-02-20T12:00:00Z'
@@ -84,7 +84,51 @@ describe('Colabra Comment Action', () => {
     expect(mockHttpClient.postJson).toHaveBeenCalledWith(
       'https://api.colabra.ai/2024-01/comments',
       {
-        task_id: 'EXP-10',
+        task_id: 'TSK-123',
+        body_text: 'Test comment'
+      }
+    )
+
+    expect(core.setOutput).toHaveBeenCalledWith('comment_id', 'comment-123')
+    expect(core.setFailed).not.toHaveBeenCalled()
+  })
+
+  it('shall post a comment on a project successfully', async () => {
+    // Arrange
+    const inputs = {
+      'api_key': 'test-api-key',
+      'workspace_slug': 'test-workspace',
+      'resource_id': 'PRO-123',
+      'body_text': 'Test comment'
+    }
+
+    const mockResponse: MockedResponse<ColabraComment> = {
+      statusCode: 201,
+      headers: {
+        'content-type': 'application/json'
+      },
+      result: {
+        id: 'comment-123',
+        project_id: 'PRO-123',
+        body_text: 'Test comment',
+        created_at: '2024-02-20T12:00:00Z',
+        updated_at: '2024-02-20T12:00:00Z'
+      }
+    }
+
+    // Setup mocks
+    jest.mocked(core.getInput).mockImplementation((name: string) => inputs[name as keyof typeof inputs])
+    mockHttpClient.postJson = jest.fn().mockResolvedValueOnce(mockResponse)
+    jest.mocked(HttpClient).mockImplementation(() => mockHttpClient)
+
+    // Act
+    await runAction()
+
+    // Assert
+    expect(mockHttpClient.postJson).toHaveBeenCalledWith(
+      'https://api.colabra.ai/2024-01/comments',
+      {
+        project_id: 'PRO-123',
         body_text: 'Test comment'
       }
     )
@@ -98,7 +142,7 @@ describe('Colabra Comment Action', () => {
     const inputs = {
       'api_key': 'test-api-key',
       'workspace_slug': 'test-workspace',
-      'resource_id': 'EXP-10',
+      'resource_id': 'TSK-123',
       'body_text': 'Test comment'
     }
 
@@ -129,12 +173,12 @@ describe('Colabra Comment Action', () => {
     )
   })
 
-  it('shall validate resource_id format', async () => {
+  it('shall validate resource_id format for tasks', async () => {
     // Arrange
     const inputs = {
       'api_key': 'test-api-key',
       'workspace_slug': 'test-workspace',
-      'resource_id': 'invalid-id',
+      'resource_id': 'TASK-123',
       'body_text': 'Test comment'
     }
 
@@ -148,7 +192,31 @@ describe('Colabra Comment Action', () => {
 
     // Assert
     expect(core.setFailed).toHaveBeenCalledWith(
-      'resource_id must be in the format PREFIX-NUMBER (e.g. EXP-10)'
+      'resource_id must be in the format TSK-123 or PRO-123'
+    )
+    expect(mockHttpClient.postJson).not.toHaveBeenCalled()
+  })
+
+  it('shall validate resource_id format for projects', async () => {
+    // Arrange
+    const inputs = {
+      'api_key': 'test-api-key',
+      'workspace_slug': 'test-workspace',
+      'resource_id': 'PROJECT-123',
+      'body_text': 'Test comment'
+    }
+
+    // Setup mocks
+    jest.mocked(core.getInput).mockImplementation((name: string) => inputs[name as keyof typeof inputs])
+    mockHttpClient.postJson = jest.fn()
+    jest.mocked(HttpClient).mockImplementation(() => mockHttpClient)
+
+    // Act
+    await runAction()
+
+    // Assert
+    expect(core.setFailed).toHaveBeenCalledWith(
+      'resource_id must be in the format TSK-123 or PRO-123'
     )
     expect(mockHttpClient.postJson).not.toHaveBeenCalled()
   })

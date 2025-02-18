@@ -1,21 +1,34 @@
 import * as core from '@actions/core'
 import { HttpClient } from '@actions/http-client'
 import { TypedResponse } from '@actions/http-client/lib/interfaces'
-import { ColabraComment, ColabraErrorResponse, ColabraApiError } from './types'
+import { ColabraComment, ColabraErrorResponse, ColabraApiError, ResourceType, ResourceIdInfo } from './types'
 
 const BASE_URL = 'https://api.colabra.ai/2024-01'
 
 type ApiResponse<T> = TypedResponse<T>
 
+function parseResourceId(resourceId: string): ResourceIdInfo {
+  const match = resourceId.match(/^(TSK|PRO)-\d+$/)
+  if (!match) {
+    throw new Error('resource_id must be in the format TSK-123 or PRO-123')
+  }
+
+  const prefix = match[1]
+  return {
+    type: prefix === 'TSK' ? 'task' : 'project',
+    id: resourceId
+  }
+}
+
 async function createComment(
   client: HttpClient,
-  taskId: string,
+  resourceInfo: ResourceIdInfo,
   bodyText: string
 ): Promise<ColabraComment> {
   const response: ApiResponse<ColabraComment | ColabraErrorResponse> = await client.postJson(
     `${BASE_URL}/comments`,
     {
-      task_id: taskId,
+      [`${resourceInfo.type}_id`]: resourceInfo.id,
       body_text: bodyText
     }
   )
@@ -42,10 +55,8 @@ export async function runAction(): Promise<void> {
     const resourceId = core.getInput('resource_id', { required: true })
     const bodyText = core.getInput('body_text', { required: true })
 
-    // Validate inputs
-    if (!resourceId.match(/^[A-Z]+-\d+$/)) {
-      throw new Error('resource_id must be in the format PREFIX-NUMBER (e.g. EXP-10)')
-    }
+    // Parse and validate resource ID
+    const resourceInfo = parseResourceId(resourceId)
 
     // Create HTTP client
     const client = new HttpClient('colabra-comment-action', undefined, {
@@ -55,12 +66,12 @@ export async function runAction(): Promise<void> {
       }
     })
 
-    core.debug(`Creating comment on task ${resourceId}`)
-    const comment = await createComment(client, resourceId, bodyText)
+    core.debug(`Creating comment on ${resourceInfo.type} ${resourceInfo.id}`)
+    const comment = await createComment(client, resourceInfo, bodyText)
 
     core.debug('Comment created successfully')
     core.setOutput('comment_id', comment.id)
-    core.info(`Successfully posted comment ${comment.id} to task ${resourceId}`)
+    core.info(`Successfully posted comment ${comment.id} to ${resourceInfo.type} ${resourceInfo.id}`)
   } catch (error) {
     if (error instanceof ColabraApiError) {
       core.setFailed(
