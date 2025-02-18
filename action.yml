@@ -1,0 +1,24 @@
+name: 'Colabra Comment Action'
+description: 'Post comments on Colabra tasks and projects'
+author: 'Colabra'
+branding:
+  icon: 'message-square'
+  color: 'blue'
+
+inputs:
+  api_key:
+    description: 'Colabra API Key'
+    required: true
+  workspace_slug:
+    description: 'Colabra Workspace Slug'
+    required: true
+  resource_id:
+    description: 'Task or Project ID (e.g. "EXP-10")'
+    required: true
+  body_text:
+    description: 'The text content of the comment'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js' 
