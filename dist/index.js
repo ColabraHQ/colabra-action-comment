@@ -25747,7 +25747,7 @@ async function runAction() {
     }
 }
 if (require.main === require.cache[eval('__filename')]) {
-    // runAction();
+    runAction();
 }
 
 
