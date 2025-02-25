@@ -25704,10 +25704,9 @@ async function createComment(client, resourceInfo, bodyText) {
         body_text: bodyText,
     });
     const { statusCode, result } = response;
-    console.log(response, statusCode, result);
+    core.debug(`API Response - Status Code: ${statusCode}, ID: ${result?.id}`);
     if (statusCode !== 201 && statusCode !== 200) {
         const errorBody = result;
-        console.log(errorBody);
         throw new types_1.ColabraApiError(errorBody?.error?.message, statusCode, errorBody?.error?.code);
     }
     return result;
