@@ -39,8 +39,11 @@ async function createComment(
 
   const { statusCode, result } = response;
 
+  console.log(response, statusCode, result);
+
   if (statusCode !== 201 && statusCode !== 200) {
     const errorBody = result as ColabraErrorResponse;
+    console.log(errorBody);
     throw new ColabraApiError(
       errorBody?.error?.message,
       statusCode,
