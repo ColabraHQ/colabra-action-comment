@@ -97,5 +97,5 @@ export async function runAction(): Promise<void> {
 }
 
 if (require.main === module) {
-  // runAction();
+  runAction();
 }
