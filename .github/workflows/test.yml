@@ -1,0 +1,15 @@
+name: Colabra Comment Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ColabraHQ/colabra-action-comment@v3
+        with:
+          api_key: sk_x9bmvfu7ounaofi6v40aa1d5jsbgoc3jz4w2vgcvevrt5vlo
+          workspace_slug: rubbie-kelvin
+          resource_id: PRO-9
+          body_text: 'Your comment text here'
