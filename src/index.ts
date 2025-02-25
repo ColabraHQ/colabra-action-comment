@@ -9,7 +9,7 @@ import {
   ResourceIdInfo,
 } from "./types";
 
-const BASE_URL = "https://api.colabra.ai/";
+const BASE_URL = "https://api.colabra.ai";
 
 type ApiResponse<T> = TypedResponse<T>;
 
@@ -65,8 +65,8 @@ export async function runAction(): Promise<void> {
     // Create HTTP client
     const client = new HttpClient("colabra-comment-action", undefined, {
       headers: {
-        Authorization: `X-Colabra-Api-Key ${apiKey}`,
         "Content-Type": "application/json",
+        "X-Colabra-Api-Key": apiKey,
       },
     });
 
